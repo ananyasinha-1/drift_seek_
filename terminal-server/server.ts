@@ -52,7 +52,8 @@ function startServer() {
   targetContainer, 
   "sh", 
   "-c", 
-  "apk update && apk add --no-cache bash git openrc curl && clear && exec bash"
+  "apk update && apk add --no-cache bash git openrc curl && echo 'PS1=\"DRIFT_SERVER_PROMPT|\\w> \"' > ~/.bashrc && clear && exec bash",
+  "clear",
 ];
       console.log(`Secure Shell Session Started for: ${customUser}`);
       ptyProcess = pty.spawn(command, args, {
