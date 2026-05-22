@@ -170,7 +170,7 @@ export default function Home() {
           </h3>
           <div className="flex gap-6 font-mono text-xs text-zinc-500 uppercase tracking-wider">
             <a href={session ? `https://github.com/${session.user.username}`  : "#"} className="hover:text-black transition-colors">GitHub</a>
-            <a href="#" className="hover:text-black transition-colors">Terminal</a>
+            <a href="/console" className="hover:text-black transition-colors">Terminal</a>
             <a href="#" className="hover:text-black transition-colors">Network</a>
           </div>
         </footer>

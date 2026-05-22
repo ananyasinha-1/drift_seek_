@@ -1,11 +1,37 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db_connect';
 import ABTestLogs from '@/lib/models/ABTestLogs';
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 export async function GET() {
   try {
+    const session = await getServerSession(authOptions);
+
+    if (!session || !(session as any).accessToken) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
+    const res = await fetch('https://api.github.com/user/repos?per_page=100&sort=updated', {
+      headers: {
+        Authorization: `Bearer ${(session as any).accessToken}`,
+        Accept: 'application/vnd.github.v3+json',
+      }
+    });
+
+    const reposData = await res.json();
+    if (!Array.isArray(reposData)) {
+       throw new Error("Unable to fetch user repositories from GitHub");
+    }
+
+    const userGithubUrls = reposData.map((repo: any) => repo.html_url);
+
     await dbConnect();
-    const logs = await ABTestLogs.find({}, { abTests: { $slice: -10 } }).sort({ 'abTests.testedAt': -1 });
+    const logs = await ABTestLogs.find(
+      { githubUrl: { $in: userGithubUrls } },
+      { abTests: { $slice: -10 } }
+    ).sort({ 'abTests.testedAt': -1 });
+
     return NextResponse.json({ success: true, data: logs });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
